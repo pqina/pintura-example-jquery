@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>jQuery</title>
+
+    <link rel="icon" href="favicon.ico" />
+
+    <!-- pintura -->
+    <link rel="stylesheet" href="./node_modules/@pqina/pintura/pintura.css" />
+
+    <!-- filepond -->
+    <link
+      href="./node_modules/filepond/dist/filepond.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="./node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <style>
+      html {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      img {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Pintura Image Editor</h1>
+
+    <h2>Inline</h2>
+    <div class="inline-editor" style="height: 70vh"></div>
+    <p><img class="inline-result" src="" alt="" /></p>
+
+    <h2>Modal</h2>
+    <p><button class="modal-button">Open editor</button></p>
+    <p><img class="modal-result" src="" alt="" /></p>
+
+    <h2>Overlay</h2>
+    <p>
+      <button class="overlay-button" data-action="open">Open editor</button>
+    </p>
+    <p>
+      <button style="display: none" class="overlay-button" data-action="close">
+        Close editor
+      </button>
+    </p>
+    <img
+      class="overlay-result"
+      src="image.jpeg"
+      width="512"
+      height="256"
+      alt=""
+    />
+    <div
+      class="overlay-editor"
+      style="display: none; width: 512px; height: 256px"
+    ></div>
+
+    <h2>FilePond</h2>
+    <div style="width: 320px">
+      <input type="file" class="my-pond" multiple />
+    </div>
+
+    <script src="./jquery.js"></script>
+    <script src="./node_modules/@pqina/pintura/pintura-iife.js"></script>
+    <script src="./node_modules/@pqina/jquery-pintura/dist/useEditorWithJQuery.iife.js"></script>
+
+    <!-- filepond -->
+    <script src="./node_modules/filepond/dist/filepond.js"></script>
+    <script src="./node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.js"></script>
+
+    <!-- filepond image editor plugin -->
+    <script src="./node_modules/@pqina/filepond-plugin-image-editor/FilePondPluginImageEditor.js"></script>
+
+    <!-- filepond jquery adapter -->
+    <script src="./node_modules/jquery-filepond/filepond.jquery.js"></script>
+
+    <script>
+      // load Pintura adapter
+      useEditorWithJQuery(jQuery, pintura);
+
+      //
+      // inline (using pinturaDefault)
+      //
+      var editor = $(".inline-editor").pinturaDefault({
+        src: "./image.jpeg",
+        stickers: [
+          ["Emoji", ["⭐️", "😊", "👍", "👎", "☀️", "🌤", "🌥"]],
+          [
+            "Markers",
+            [
+              {
+                src: "sticker-one.svg",
+                width: "5%",
+                alt: "One",
+              },
+              {
+                src: "sticker-two.svg",
+                width: "5%",
+                alt: "Two",
+              },
+              {
+                src: "sticker-three.svg",
+                width: "5%",
+                alt: "Three",
+              },
+            ],
+          ],
+        ],
+      });
+
+      $(".inline-editor").on("pintura:load", (e) =>
+        console.log("inline load", e)
+      );
+
+      $(".inline-editor").on("pintura:process", (e) => {
+        console.log("inline process", e);
+        $(".inline-result").attr("src", URL.createObjectURL(e.detail.dest));
+      });
+
+      //
+      // modal
+      //
+      $(".modal-button").on("click", (e) => {
+        // create and open the modal
+        var editor = $.fn.pintura.openDefaultEditor({
+          src: "./image.jpeg",
+          stickers: [
+            ["Emoji", ["⭐️", "😊", "👍", "👎", "☀️", "🌤", "🌥"]],
+            [
+              "Markers",
+              [
+                {
+                  src: "sticker-one.svg",
+                  width: "5%",
+                  alt: "One",
+                },
+                {
+                  src: "sticker-two.svg",
+                  width: "5%",
+                  alt: "Two",
+                },
+                {
+                  src: "sticker-three.svg",
+                  width: "5%",
+                  alt: "Three",
+                },
+              ],
+            ],
+          ],
+        });
+
+        // note, these are not jQuery event handlers, therefor the events are not prefixed with `pintura:`
+        editor.on("load", console.log);
+
+        // this will update the result image with the returned image file
+        editor.on("process", (res) =>
+          $(".modal-result").attr("src", URL.createObjectURL(res.dest))
+        );
+      });
+
+      //
+      // overlay
+      //
+      var overlayEditor;
+      var overlayState;
+      $(".overlay-button[data-action=open]").on("click", (e) => {
+        // hide result
+        $(".overlay-result").hide();
+        $(".overlay-editor").show();
+        $(".overlay-button[data-action=open]").hide();
+        $(".overlay-button[data-action=close]").show();
+
+        // get overlay element
+        var target = $(".overlay-editor").get(0);
+
+        // append overlay editor
+        overlayEditor = $.fn.pintura.overlayDefaultEditor(target, {
+          src: "./image.jpeg",
+          imageState: overlayState,
+        });
+
+        overlayEditor.on("process", (res) => {
+          overlayState = res.imageState;
+          $(".overlay-result").attr("src", URL.createObjectURL(res.dest));
+          $(".overlay-result").show();
+          overlayEditor.destroy();
+          overlayEditor = undefined;
+          $(".overlay-editor").hide();
+          $(".overlay-button[data-action=open]").show();
+          $(".overlay-button[data-action=close]").hide();
+        });
+      });
+
+      $(".overlay-button[data-action=close]").on("click", (e) => {
+        if (!overlayEditor) return;
+        overlayEditor.destroy();
+        overlayEditor = undefined;
+
+        $(".overlay-result").show();
+        $(".overlay-editor").hide();
+        $(".overlay-button[data-action=open]").show();
+        $(".overlay-button[data-action=close]").hide();
+      });
+
+      //
+      // FilePond
+      //
+      // Register FilePond plugins
+      const {
+        openEditor,
+        createDefaultImageReader,
+        createDefaultImageWriter,
+        processImage,
+        getEditorDefaults,
+      } = $.fn.pintura;
+
+      $.fn.filepond.registerPlugin(
+        FilePondPluginImageEditor,
+        FilePondPluginFilePoster
+      );
+
+      // Default FilePond field
+      $(".my-pond").filepond({
+        /* FilePond properties */
+        allowReorder: true,
+        filePosterMaxHeight: 256,
+
+        /* Image Editor plugin properties */
+        imageEditor: {
+          // used to create the editor, receives editor configuration, should return an editor instance
+          createEditor: openEditor,
+
+          // Required, used for reading the image data
+          imageReader: [createDefaultImageReader],
+
+          // optionally. can leave out when not generating a preview thumbnail and/or output image
+          imageWriter: [
+            createDefaultImageWriter,
+            // optional image writer instructions, this instructs
+            // the image writer to resize the image to match a width of 384 pixels
+            {
+              targetSize: {
+                width: 384,
+              },
+            },
+          ],
+
+          // used to generate poster images, runs an editor in the background
+          imageProcessor: processImage,
+
+          // Pintura Image Editor properties
+          editorOptions: {
+            // pass the editor default configuration options
+            ...getEditorDefaults(),
+
+            // we want a square crop
+            imageCropAspectRatio: 1,
+          },
+
+          // map legacy data objects to new imageState objects, uncomment if you've used FilePond with version 6 of Pintura and are loading old file metadata
+          // legacyDataToImageState: legacyDataToImageState,
+        },
+      });
+    </script>
+  </body>
+</html>

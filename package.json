@@ -11,10 +11,10 @@
     "start": "npx http-server"
   },
   "dependencies": {
-    "@pqina/filepond-plugin-image-editor": "^9.0.0",
-    "@pqina/jquery-pintura": "^9.0.0",
-    "@pqina/pintura": "^8.57.9",
-    "filepond": "^4.30.4",
+    "@pqina/filepond-plugin-image-editor": "^9.x",
+    "@pqina/jquery-pintura": "^9.x",
+    "@pqina/pintura": "^8.x",
+    "filepond": "^4.x",
     "filepond-plugin-file-poster": "^2.5.1",
     "jquery-filepond": "^1.0.0"
   },

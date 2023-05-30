@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>jQuery</title>
+
+    <link rel="icon" href="favicon.ico" />
+
+    <!-- pintura -->
+    <link rel="stylesheet" href="./node_modules/@pqina/pintura/pintura.css" />
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <h1>Pintura Image Editor</h1>
+
+    <ul>
+      <li><a href="/index.html">Append</a></li>
+      <li><a href="/modal.html">Modal</a></li>
+      <li><a href="/overlay.html">Overlay</a></li>
+      <li><a href="/filepond.html">FilePond</a></li>
+    </ul>
+
+    <h2>Modal</h2>
+    <p><button class="modal-button">Open editor</button></p>
+    <p><img class="modal-result" src="" alt="" /></p>
+
+    <script src="./jquery.js"></script>
+    <script src="./node_modules/@pqina/pintura/pintura-iife.js"></script>
+    <script src="./node_modules/@pqina/jquery-pintura/dist/useEditorWithJQuery-iife.js"></script>
+
+    <script>
+      // load Pintura adapter
+      useEditorWithJQuery(jQuery, pintura);
+
+      //
+      // modal
+      //
+      $(".modal-button").on("click", (e) => {
+        // create and open the modal
+        var editor = $.fn.pintura.openDefaultEditor({
+          src: "./image.jpeg",
+          stickers: [
+            ["Emoji", ["⭐️", "😊", "👍", "👎", "☀️", "🌤", "🌥"]],
+            [
+              "Markers",
+              [
+                {
+                  src: "sticker-one.svg",
+                  width: "5%",
+                  alt: "One",
+                },
+                {
+                  src: "sticker-two.svg",
+                  width: "5%",
+                  alt: "Two",
+                },
+                {
+                  src: "sticker-three.svg",
+                  width: "5%",
+                  alt: "Three",
+                },
+              ],
+            ],
+          ],
+        });
+
+        // note, these are not jQuery event handlers, therefor the events are not prefixed with `pintura:`
+        editor.on("load", console.log);
+
+        // this will update the result image with the returned image file
+        editor.on("process", (res) =>
+          $(".modal-result").attr("src", URL.createObjectURL(res.dest))
+        );
+      });
+    </script>
+  </body>
+</html>

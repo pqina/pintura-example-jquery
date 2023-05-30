@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>jQuery</title>
+
+    <link rel="icon" href="favicon.ico" />
+
+    <!-- pintura -->
+    <link rel="stylesheet" href="./node_modules/@pqina/pintura/pintura.css" />
+
+    <!-- filepond -->
+    <link
+      href="./node_modules/filepond/dist/filepond.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="./node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <h1>Pintura Image Editor</h1>
+
+    <ul>
+      <li><a href="/index.html">Append</a></li>
+      <li><a href="/modal.html">Modal</a></li>
+      <li><a href="/overlay.html">Overlay</a></li>
+      <li><a href="/filepond.html">FilePond</a></li>
+    </ul>
+
+    <div style="width: 320px">
+      <input type="file" class="my-pond" multiple />
+    </div>
+
+    <script src="./jquery.js"></script>
+    <script src="./node_modules/@pqina/pintura/pintura-iife.js"></script>
+    <script src="./node_modules/@pqina/jquery-pintura/dist/useEditorWithJQuery-iife.js"></script>
+
+    <!-- filepond -->
+    <script src="./node_modules/filepond/dist/filepond.js"></script>
+    <script src="./node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.js"></script>
+
+    <!-- filepond image editor plugin -->
+    <script src="./node_modules/@pqina/filepond-plugin-image-editor/FilePondPluginImageEditor.js"></script>
+
+    <!-- filepond jquery adapter -->
+    <script src="./node_modules/jquery-filepond/filepond.jquery.js"></script>
+
+    <script>
+      // load Pintura adapter
+      useEditorWithJQuery(jQuery, pintura);
+
+      // Register FilePond plugins
+      const {
+        openEditor,
+        createDefaultImageReader,
+        createDefaultImageWriter,
+        processImage,
+        getEditorDefaults,
+      } = $.fn.pintura;
+
+      $.fn.filepond.registerPlugin(
+        FilePondPluginImageEditor,
+        FilePondPluginFilePoster
+      );
+
+      // Default FilePond field
+      $(".my-pond").filepond({
+        /* FilePond properties */
+        allowReorder: true,
+        filePosterMaxHeight: 256,
+
+        /* Image Editor plugin properties */
+        imageEditor: {
+          // used to create the editor, receives editor configuration, should return an editor instance
+          createEditor: openEditor,
+
+          // Required, used for reading the image data
+          imageReader: [createDefaultImageReader],
+
+          // optionally. can leave out when not generating a preview thumbnail and/or output image
+          imageWriter: [
+            createDefaultImageWriter,
+            // optional image writer instructions, this instructs
+            // the image writer to resize the image to match a width of 384 pixels
+            {
+              targetSize: {
+                width: 384,
+              },
+            },
+          ],
+
+          // used to generate poster images, runs an editor in the background
+          imageProcessor: processImage,
+
+          // Pintura Image Editor properties
+          editorOptions: {
+            // pass the editor default configuration options
+            ...getEditorDefaults(),
+
+            // we want a square crop
+            imageCropAspectRatio: 1,
+          },
+
+          // map legacy data objects to new imageState objects, uncomment if you've used FilePond with version 6 of Pintura and are loading old file metadata
+          // legacyDataToImageState: legacyDataToImageState,
+        },
+      });
+    </script>
+  </body>
+</html>

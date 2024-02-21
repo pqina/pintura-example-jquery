@@ -1,4 +1,4 @@
-# Pintura jQuery example project
+# jQuery Image Editor with Pintura example project
 
 ## Demo
 

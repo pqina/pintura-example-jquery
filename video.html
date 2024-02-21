@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>jQuery</title>
+
+    <link rel="icon" href="favicon.ico" />
+
+    <!-- pintura -->
+    <link rel="stylesheet" href="./node_modules/@pqina/pintura/pintura.css" />
+
+    <!-- pintura video -->
+    <link
+      rel="stylesheet"
+      href="./node_modules/@pqina/pintura-video/pinturavideo.css"
+    />
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <h1>Pintura Image Editor</h1>
+
+    <ul>
+      <li><a href="/index.html">Append</a></li>
+      <li><a href="/modal.html">Modal</a></li>
+      <li><a href="/overlay.html">Overlay</a></li>
+      <li><a href="/filepond.html">FilePond</a></li>
+      <li><a href="/video.html">Video</a></li>
+    </ul>
+
+    <p>
+      Please note that the video editor extension is only available on the PQINA
+      private npm and requires purchasing a license.
+    </p>
+
+    <div class="inline-editor" style="height: 70vh"></div>
+    <p><video class="inline-result" src="" controls /></p>
+
+    <script src="./jquery.js"></script>
+    <script src="./node_modules/@pqina/pintura/pintura-iife.js"></script>
+    <script src="./node_modules/@pqina/pintura-video/pinturavideo-iife.js"></script>
+    <script src="./node_modules/@pqina/jquery-pintura/dist/useEditorWithJQuery-iife.js"></script>
+
+    <script>
+      // load Pintura adapter
+      useEditorWithJQuery(jQuery, pintura);
+
+      var {
+        plugin_trim,
+        plugin_trim_locale_en_gb,
+        createDefaultVideoWriter,
+        createMediaStreamEncoder,
+      } = pinturavideo;
+
+      var {
+        setPlugins,
+        createDefaultImageWriter,
+        createDefaultMediaWriter,
+        imageStateToCanvas,
+      } = pintura;
+
+      // load trim plugin
+      setPlugins(plugin_trim);
+
+      // reate editor
+      var editor = $(".inline-editor").pinturaDefault({
+        src: "./video.mp4",
+
+        imageCropAspectRatio: 1,
+
+        imageWriter: createDefaultMediaWriter(
+          // Generic Media Writer options, passed to image and video writer
+          {
+            targetSize: {
+              width: 400,
+            },
+          },
+          [
+            // For handling images
+            createDefaultImageWriter(),
+
+            // For handling videos
+            createDefaultVideoWriter({
+              // Video writer instructions here
+              // ...
+
+              // Encoder to use
+              encoder: createMediaStreamEncoder({
+                imageStateToCanvas,
+              }),
+            }),
+          ]
+        ),
+
+        // add video locale
+        locale: plugin_trim_locale_en_gb,
+      });
+
+      $(".inline-editor").on("pintura:load", (e) =>
+        console.log("inline load", e)
+      );
+
+      $(".inline-editor").on("pintura:process", (e) => {
+        console.log("inline process", e);
+        $(".inline-result").attr("src", URL.createObjectURL(e.detail.dest));
+      });
+    </script>
+  </body>
+</html>
